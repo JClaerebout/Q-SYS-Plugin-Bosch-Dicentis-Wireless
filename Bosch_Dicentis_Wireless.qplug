@@ -1,0 +1,1215 @@
+PluginInfo = {
+	-- Use a tilde (~) to seperate the name into a folder
+    Name = "Bosch~Bosch DCNM-Wireless",
+	-- Use semantic versioning
+    Version = "1.0.0.0",
+	-- Use a GUID for the Id (Note: Avoid changing the Id for a plugin once it is set)
+    Id = "842b82d6-860f-4c0b-8084-b06b06747b11",
+	-- The square brackets allow for a multi-line string
+    Description = [[Plugin to control and read Bosch DCNM-Wireless WAP.]],
+    Author = "Jens Claerebout",
+    ShowDebug = true
+}
+
+------------------------------- Global Variables ------------------------------
+COLORS = { 
+	["OK"] = "#00FF00",
+	[0] = "#00FF00",
+	["COMPROMISED"] = "orange",
+	[1] = "orange",
+	["FAULT"] = "red",
+	[2] = "red",
+	["NOT_PRESENT"] = "gray",
+	[3] = "gray",
+	["MISSING"] = "darkred",
+	[4] = "darkred",
+	["INITIALIZING"] = "blue",
+	[5] = "blue",
+	["GREEN"] = "#00ff00",
+	["RED"] = "#ff0000",
+	["ORANGE"] = "#ffa500",
+	["GRAY"] = "#7c7c7c",
+	["DARK_GREEN"] = "#007C00",
+}
+
+STATUS_VALUES = {
+	["OK"] = 0,
+	["COMPROMISED"] = 1,
+	["FAULT"] = 2,
+	["NOT_PRESENT"] = 3,
+	["MISSING"] = 4,
+	["INITIALIZING"] = 5,
+}
+
+ENABLE_CODE_PIN = false
+
+--------------------------------- Properties ----------------------------------
+function GetProperties()
+    local props = { }
+    table.insert(props, {
+        Name = "#Seats",
+        Type = "integer",
+        Value = 5,
+        Min = 1,
+        Max = 120,
+    })
+    return props
+end
+
+function RectifyProperties(props)
+    return props
+end
+
+------------------------- Plugin Block Name and Color -------------------------
+function GetPrettyName(props)
+    return "Bosch DCNM-Wireless" .. " v" .. PluginInfo["Version"]
+end
+
+function GetColor(props)
+	return ConvertColor("#ed0007")
+end
+
+---------------------------------- Controls -----------------------------------
+function GetControls(props)
+    local ctls = { }
+
+	if ENABLE_CODE_PIN then
+		table.insert(ctls, {
+            Name = "code",
+            ControlType = "Text",
+            Count = 1,
+            PinStyle = "Input",
+            UserPin = true
+        })
+	end
+
+    table.insert(ctls, {
+        Name = "Status",
+        ControlType = "Indicator",
+		    IndicatorType = "Status",
+        Count = 1,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+
+    table.insert(ctls, {
+        Name = "IP",
+        ControlType = "Text",
+        Count = 1,
+        UserPin = false
+    })
+
+    table.insert(ctls, {
+        Name = "user",
+        ControlType = "Text",
+        Count = 1,
+        UserPin = false
+    })
+    
+    table.insert(ctls, {
+        Name = "password",
+        ControlType = "Text",
+        Count = 1,
+        UserPin = false
+    })
+
+    table.insert(ctls, {
+        Name = "Power",
+        ControlType = "Button",
+        ButtonType = "Toggle",
+        Count = 1,
+        UserPin = true,
+        PinStyle = "Both",
+        Icon = "Power",
+    })
+
+    table.insert(ctls, {
+        Name = "SpeakerName",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = 5,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+    
+    table.insert(ctls, {
+        Name = "SpeakerID",
+        ControlType = "Knob",
+        ControlUnit = "Integer",
+        Min = 0,
+        Max = 120,
+        Count = 5,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+
+    table.insert(ctls, {
+        Name = "RemoveActiveSpeaker",
+        ControlType = "Button",
+        ButtonType = "Trigger",
+        Count = 5,
+        UserPin = true,
+        PinStyle = "Input"
+    })
+
+    table.insert(ctls, {
+        Name = "WaitName",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = 10,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+    
+    table.insert(ctls, {
+        Name = "WaitID",
+        ControlType = "Knob",
+        ControlUnit = "Integer",
+        Min = 0,
+        Max = 120,
+        Count = 10,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+
+    table.insert(ctls, {
+        Name = "AddWaitingSpeaker",
+        ControlType = "Button",
+        ButtonType = "Trigger",
+        Count = 10,
+        UserPin = true,
+        PinStyle = "Input"
+    })
+    
+    table.insert(ctls, {
+        Name = "SeatID",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = props["#Seats"].Value,
+        UserPin = false
+    })
+    
+    table.insert(ctls, {
+        Name = "SeatName",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = props["#Seats"].Value,
+        UserPin = false
+    })
+    
+    table.insert(ctls, {
+        Name = "SeatBatteryStatus",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = props["#Seats"].Value,
+        UserPin = false
+    })
+    
+    table.insert(ctls, {
+        Name = "SeatConnectedStatus",
+        ControlType = "Indicator",
+        IndicatorType = "LED",
+        Count = props["#Seats"].Value,
+        UserPin = false
+    })
+
+    table.insert(ctls, {
+        Name = "SeatPrioEnabled",
+        ControlType = "Indicator",
+        IndicatorType = "LED",
+        Count = props["#Seats"].Value,
+        UserPin = true,
+        PinStyle = "Output"
+    })
+
+    table.insert(ctls, {
+        Name = "SeatMicOn",
+        ControlType = "Button",
+        ButtonType = "Toggle",
+        Count = props["#Seats"].Value,
+        UserPin = true,
+        PinStyle = "Both"
+    })
+
+    table.insert(ctls, {
+        Name = "Message",
+        ControlType = "Indicator",
+        IndicatorType = "Text",
+        Count = 1,
+        UserPin = false,
+    })
+    
+    return ctls
+end
+
+------------------------------- Control Layout --------------------------------
+function GetControlLayout(props)
+	-- Uncomment the next line if you are using multiple pages
+	local currentPage = props["page_index"].Value
+
+    local layout = { }
+
+	if ENABLE_CODE_PIN then
+		layout["code"] = 
+		{
+			PrettyName = "Code",
+			Style = "None"
+		}
+	end
+
+    local graphics = { }
+
+    boschLogoBase64 = "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"
+
+    if currentPage == 1 then
+        --graphics for page 1
+        table.insert(graphics, {
+            Type = "GroupBox",
+            Position = { 14,14 },
+            Size = {678,288},
+            StrokeColor = "black",
+            StrokeWidth = 2,
+            CornerRadius = 10,
+        })
+        table.insert(graphics, {
+            Type = "Image", -- PNG,JPEG
+            Image = boschLogoBase64,
+            Position = {119,44},
+            Size = {300,70}
+        })
+        table.insert(graphics, {
+            Type = "Label",
+			      Position = { 216,102 },
+			      Size = {186,28},
+            Text = "Dicentis DCNM-Wireless",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+			      Position = { 472,51 },
+			      Size = {192,16},
+            Text = "Status",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+		      	Position = { 148,159 },
+		      	Size = {79,27},
+            Text = "IP",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+		      	Position = { 148,186 },
+		      	Size = {79,27},
+            Text = "Username",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+		      	Position = { 148,213 },
+		      	Size = {79,27},
+            Text = "Password",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+		      	Position = { 444,159 },
+		      	Size = {128,16},
+            Text = "Power",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+
+        -- controls for page 1
+        layout["Status"] = 
+        {
+            PrettyName = "Status",
+            Position = { 472,74 },
+            Size = { 193,28 },
+            Style = "Text",
+            TextFontSize = 15,
+        }
+        layout["IP"] = 
+        {
+            PrettyName = "IP",
+            Position = { 238,159 },
+            Size = { 128,27 },
+            Style = "Text",
+            TextFontSize = 15,
+        }
+        layout["user"] = 
+        {
+            PrettyName = "Username",
+            Position = { 238,186 },
+            Size = { 128,27 },
+            Style = "Text",
+            TextFontSize = 15,
+        }
+        layout["password"] = 
+        {
+            PrettyName = "Password",
+            Position = { 238,213 },
+            Size = { 128,27 },
+            Style = "Text",
+            TextFontSize = 15,
+        }
+        layout["Power"] = 
+        {
+            PrettyName = "Power",
+            Position = { 483,192 },
+            Size = { 50,50 },
+            Style = "Button",
+            TextFontSize = 15,
+            CornerRadius = 25,
+            UnlinkOffColor = true,
+            OffColor = {220,63,63},
+            Color = {63,220,63},
+        }
+        layout["Message"] = 
+        {
+            PrettyName = "Message",
+            Position = { 97,254 },
+            Size = { 513,35 },
+            Style = "Text",
+            TextFontSize = 12,
+            HtextAlign = "Center",
+            Color = {0, 0, 0, 0},
+            TextColor = {0, 0, 0},
+            StrokeWidth = 0,    
+            StrokeColor = {0, 0, 0, 0},
+        }
+
+
+    elseif currentPage == 2 then
+        --graphics for page 2
+        table.insert(graphics, {
+            Type = "GroupBox",
+            Position = { 14,14 },
+            Size = {678,545},
+            StrokeColor = "black",
+            StrokeWidth = 2,
+            CornerRadius = 10,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 269,23 },
+            Size = {168,25},
+            Text = "Active Speakers",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 55,51 },
+            Size = {49,25},
+            Text = "ID:",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 193,51 },
+            Size = {49,25},
+            Text = "Name:",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 576,51 },
+            Size = {61,25},
+            Text = "Remove",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 269,222 },
+            Size = {168,25},
+            Text = "Wait List",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 55,250 },
+            Size = {49,25},
+            Text = "ID:",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 193,250 },
+            Size = {49,25},
+            Text = "Name:",
+            TextSize = 15,
+            HTextAlign = "Left"
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 576,250 },
+            Size = {49,25},
+            Text = "Add",
+            TextSize = 15,
+            HTextAlign = "Center"
+        })
+        -- controls for page 2
+        for i = 1, 5 do
+            layout["SpeakerID " .. i] =
+            {
+                PrettyName = "Speaker ID " .. i,
+                Style = "Text",
+                Position = { 55,84 + (i - 1) * 25 },
+                Size = { 49,25 },
+                TextFontSize = 15,
+                Color = {0, 0, 0, 0},
+				        TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                HTextAlign = "Center",
+            }
+            layout["SpeakerName " .. i] =
+            {
+                PrettyName = "Speaker Name " .. i,
+				        Style = "Text",
+				        Position = { 193,84 + (i - 1) * 25 },
+                Size = { 360,25 },
+                TextFontSize = 15,
+                WordWrap = true,
+                Color = {0, 0, 0, 0},
+                TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                StrokeColor = {0, 0, 0, 0},
+                HTextAlign = "Left",
+			      }
+            layout["RemoveActiveSpeaker " .. i] =
+            {
+                PrettyName = "Remove Speaker " .. i,
+                Style = "Button",
+                Position = { 576,84 + (i - 1) * 25 },
+                Size = { 50,25 },
+                CornerRadius = 5,
+            }
+        end
+
+        for i = 1, 10 do
+            layout["WaitID " .. i] =
+            {
+                PrettyName = "Wait ID " .. i,
+                Style = "Text",
+                Position = { 55,285 + (i - 1) * 25 },
+                Size = { 49,25 },
+                TextFontSize = 15,
+                Color = {0, 0, 0, 0},
+				        TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                HTextAlign = "Center",
+            }
+            layout["WaitName " .. i] =
+            {
+                PrettyName = "Wait Name " .. i,
+                Style = "Text",
+                Position = { 193,285 + (i - 1) * 25 },
+                Size = { 360,25 },
+                TextFontSize = 15,
+                WordWrap = true,
+                Color = {0, 0, 0, 0},
+                TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                StrokeColor = {0, 0, 0, 0},
+                HTextAlign = "Left",
+			      }
+            layout["AddWaitingSpeaker " .. i] =
+            {
+                PrettyName = "Add Waiting Speaker " .. i,
+                Style = "Button",
+                Position = { 576,285 + (i - 1) * 25 },
+                Size = { 50,25 },
+                CornerRadius = 5,
+            }
+        end
+        
+    elseif currentPage >= 3 then
+        local groupIndex = (currentPage - 3) * 25
+        table.insert(graphics, {
+            Type = "GroupBox",
+            Position = { 14,14 },
+            Size = {678,100 + math.min(25, props["#Seats"].Value - groupIndex) * 35},
+            StrokeColor = "black",
+            StrokeWidth = 2,
+            CornerRadius = 10,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 24,30 },
+            Size = {85,28},
+            Text = "Seat ID",
+            TextSize = 17,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 109,30 },
+            Size = {93,28},
+            Text = "Mic On",
+            TextSize = 17,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 202,30 },
+            Size = {187,28},
+            Text = "Name",
+            TextSize = 17,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 389,30 },
+            Size = {99,28},
+            Text = "Battery",
+            TextSize = 17,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 488,30 },
+            Size = {102,28},
+            Text = "Connected",
+            TextSize = 17,
+        })
+        table.insert(graphics, {
+            Type = "Label",
+            Position = { 590,30 },
+            Size = {85,28},
+            Text = "Prio On",
+            TextSize = 17,
+        })
+        for i = 1, math.min(25, props["#Seats"].Value - groupIndex) do            
+            layout["SeatID " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat ID " .. (groupIndex + i),
+                Position = { 49, 88 + (i-1)*35 },
+                Size = { 35, 35 },
+                Style = "Text",
+                TextFontSize = 15,
+                CornerRadius = 10,
+                Color = {0, 0, 0, 0},
+                TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                StrokeColor = {0, 0, 0, 0},
+            }
+            layout["SeatMicOn " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat Mic On " .. (groupIndex + i),
+                Position = { 126, 88 + (i-1)*35 },
+                Size = { 60, 35 },
+                Style = "Button",
+                CornerRadius = 10,
+                Color = {220, 63, 63},
+            }
+            layout["SeatName " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat Name " .. (groupIndex + i),
+                Position = { 202, 88 + (i-1)*35 },
+                Size = { 187, 35 },
+                Style = "Text",
+                TextFontSize = 15,
+                CornerRadius = 10,
+                Color = {0, 0, 0, 0},
+                TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                StrokeColor = {0, 0, 0, 0},
+            }
+            layout["SeatBatteryStatus " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat Battery Status " .. (groupIndex + i),
+                Position = { 421, 88 + (i-1)*35 },
+                Size = { 35, 35 },
+                Style = "Text",
+                TextFontSize = 15,
+                CornerRadius = 10,
+                Color = {0, 0, 0, 0},
+                TextColor = {0, 0, 0},
+                StrokeWidth = 0,
+                StrokeColor = {0, 0, 0, 0},
+            }
+            layout["SeatConnectedStatus " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat Connected Status " .. (groupIndex + i),
+                Position = { 524, 88 + (i-1)*35 },
+                Size = { 30, 30 },
+                Style = "LED",
+            }
+            layout["SeatPrioEnabled " .. (groupIndex + i)] = 
+            {
+                PrettyName = "Seat Prio Enabled " .. (groupIndex + i),
+                Position = { 618, 88 + (i-1)*35 },
+                Size = { 30, 30 },
+                Style = "LED",
+            }
+        end
+    end
+
+    return layout, graphics
+end
+
+---------------------------- Other Plugin Functions ---------------------------
+
+function GetPins(props)
+	local pins = { }
+  
+	return pins
+end
+
+function GetPages(props)
+    local pages = {}
+
+    table.insert(pages, { name = "Config" })
+    table.insert(pages, { name = "Speaker List" })
+
+    for i = 1, math.ceil(props["#Seats"].Value / 25) do
+        table.insert(pages, { name = "Seats " .. ((i-1)*25 + 1) .. "-" .. math.min(i*25, props["#Seats"].Value) })
+    end
+
+    return pages
+end
+
+function GetComponents(props)
+	local components = { }
+
+	return components
+end
+
+function GetWiring(props)
+	local wiring = { }
+  
+	return wiring
+end
+
+------------------------------ Local Functions --------------------------------
+function HEXtoDEC(hex)
+	hex = string.upper(hex)
+	local b1 = string.byte(string.sub(hex, 1, 1))
+	local b2 = string.byte(string.sub(hex, 2, 2))
+  
+	return( (b1<=57 and b1-48 or b1-55)*16 + (b2<=57 and b2-48 or b2-55) )
+end
+
+function ConvertColor(c)
+	local t = {}
+	t[1] = HEXtoDEC(string.sub(c,2,3))
+	t[2] = HEXtoDEC(string.sub(c,4,5))
+	t[3] = HEXtoDEC(string.sub(c,6,7))
+	return t
+end
+
+-- Http api call eventhandler functions
+---- parce Sid after login and check for authentication errors.
+function funcParceSid(tbl, code, data, err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if code == 200 then
+    status.Value = 0
+    if string.find(data,"sid") then
+      sid = rapidjson.decode(data)
+      print("Bosch-Sid : " ..sid.sid)
+    end
+    HearbeatTimer:Start(10) -- start heartbeat timer to keep the session alive
+    firstStatusPullAfterLogin = true
+    funcGetStatus() -- pull power state of wap after login
+    firstSeatsPullAfterLogin = true
+    funcGetSeats() -- pull available seats from the wap
+    firstSpeakerPullAfterLogin = true
+    Timer.CallAfter(funcGetSpeakerList,1) -- pull active speakers from wap
+    firstWaitingPullAfterLogin = true
+    Timer.CallAfter(funcGetWaitingList,2) -- pull waiting speakers from wap
+  elseif code == 401 then -- authentication error
+    print(string.format("%i : Authentication Error",code))
+    status.Value = 2
+    status.String = "Auth error"
+    HearbeatTimer:Stop()
+  else
+    print(string.format("%i : %s",code,err))
+    status.Value = 4
+    Timer.CallAfter(funcLogin, 10) -- attempt relogin after 10 seconds
+    HearbeatTimer:Stop()
+  end
+end
+
+---- parce power state of the wap
+function funcParceState(tbl, code, data,  err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if  code == 200 then
+    states = rapidjson.decode(data)
+    if  states.state == nil then
+    else
+      if states.state == 0 then
+        power.Value = 1
+        print("Power is on.")
+      else
+        power.Value = 0
+        print("Power is off.")
+      end
+    end
+    funcGetStatus()
+  elseif code == 0 then 
+    funcGetStatus()
+  else 
+    status.Value = 2
+    Timer.CallAfter(funcLogin, 30) -- attempt relogin since there is connection or other error
+    -- status will be updated if the login fails
+  end
+end
+
+---- parce the speaker list send after GET api call
+function funcParceSpeakerList(tbl, code, data, err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if code == 200 then
+    if string.len(data) > 5 then -- check if the speaker list is not empty
+      speakerList = rapidjson.decode(data)
+      if speakerList ~= nil then
+
+        local seatByID = {}
+        local activeSeats = {}
+
+        -- Build lookup table
+        for key,seat in pairs(seatlist) do
+          seatByID[seat.id] = key
+        end
+
+        -- Update active speakers
+        for _,speaker in pairs(speakerList) do
+          local seatIndex = seatByID[speaker.id]
+
+          if seatIndex and seatIndex <= definedSeats then
+            activeSeats[seatIndex] = true
+
+            if Controls.SeatMicOn[seatIndex].Boolean ~= speaker.micOn then
+              Controls.SeatMicOn[seatIndex].Boolean = speaker.micOn              
+            end
+
+            if Controls.SeatPrioEnabled[seatIndex].Boolean ~= speaker.prioOn then
+              Controls.SeatPrioEnabled[seatIndex].Boolean = speaker.prioOn
+            end
+          end
+        end
+
+        -- Turn off seats no longer active
+        for key,_ in pairs(Controls.SeatID) do
+          if not activeSeats[key] then
+
+            if Controls.SeatMicOn[key].Boolean ~= false then
+              Controls.SeatMicOn[key].Boolean = false
+            end
+
+            if Controls.SeatPrioEnabled[key].Boolean ~= false then
+              Controls.SeatPrioEnabled[key].Boolean = false
+            end
+          end
+        end
+
+        -- set speaker id's and names
+        for key,_ in pairs(Controls.SpeakerID) do
+          if speakerList[key] ~= nil then 
+            Controls.SpeakerID[key].Value = speakerList[key].id
+            Controls.SpeakerID[key].IsInvisible = false
+            Controls.RemoveActiveSpeaker[key].IsInvisible = false
+            Controls.SpeakerName[key].String = speakerList[key].name
+          else
+            Controls.SpeakerID[key].Value = 0
+            Controls.SpeakerID[key].IsInvisible = true
+            Controls.RemoveActiveSpeaker[key].IsInvisible = true
+            Controls.SpeakerName[key].String = ""
+          end
+        end
+      end
+    else -- if speaker list is empty reset all values
+      for key,_ in pairs(Controls.SeatID) do
+        Controls.SeatMicOn[key].Boolean = false
+        Controls.SeatPrioEnabled[key].Boolean = false
+      end
+      for key,_ in pairs(Controls.SpeakerID) do
+        Controls.SpeakerID[key].Value = 0
+        Controls.SpeakerID[key].IsInvisible = true
+        Controls.RemoveActiveSpeaker[key].IsInvisible = true
+        Controls.SpeakerName[key].String = ""
+      end
+    end
+    funcGetSpeakerList() -- once parced call api GET again
+  elseif code == 0 then 
+    funcGetSpeakerList()
+  else 
+    --funcLogin() -- attempt relogin since there is connection or other error
+    -- status will be updated if the login fails
+  end  
+end
+
+---- parce the speaker list send after GET api call
+function funcParceWaitingList(tbl, code, data, err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if code == 200 then
+    if string.len(data) > 5 then -- check if the waiting list is not empty
+      waitingList = rapidjson.decode(data)
+      if waitingList ~= nil then
+
+        local seatByID = {}
+        local waitingSeats = {}
+
+        -- Build lookup table
+        for key,seat in pairs(seatlist) do
+          seatByID[seat.id] = key
+        end
+
+        -- Update active waiting seats
+        for _,wait in pairs(waitingList) do
+          local seatIndex = seatByID[wait.id]
+        end
+
+        -- Turn off seats no longer wainting
+        for key,_ in pairs(Controls.SeatID) do
+          if not waitingSeats[key] then
+          end
+        end
+
+        -- set Wainting speakers id's and names
+        for key,_ in pairs(Controls.WaitID) do
+          if waitingList[key] ~= nil then 
+            Controls.WaitID[key].Value = waitingList[key].id
+            Controls.WaitID[key].IsInvisible = false
+            Controls.AddWaitingSpeaker[key].IsInvisible = false
+            Controls.WaitName[key].String = waitingList[key].name
+          else 
+            Controls.WaitID[key].Value = 0
+            Controls.WaitID[key].IsInvisible = true
+            Controls.AddWaitingSpeaker[key].IsInvisible = true
+            Controls.WaitName[key].String = ""
+          end
+        end
+
+      end
+    else -- if waint list is empty reset all values
+      for key,_ in pairs(Controls.SeatID) do
+
+      end
+      for key,_ in pairs(Controls.WaitID) do
+        Controls.WaitID[key].Value = 0
+        Controls.WaitID[key].IsInvisible = true
+        Controls.AddWaitingSpeaker[key].IsInvisible = true
+        Controls.WaitName[key].String = ""
+      end
+    end
+    funcGetWaitingList() -- once parced call api GET again
+  elseif code == 0 then 
+    funcGetWaitingList()
+  else 
+    --funcLogin() -- attempt relogin since there is connection or other error
+    -- status will be updated if the login fails
+  end  
+end
+
+---- parce available seats for the wap after GET api call
+function funcParceSeats(tbl, code, data, err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if code == 200 then
+    seatlist = rapidjson.decode(data)
+    if seatlist ~= nil then -- check if seat list is not empty
+      for key,_ in pairs(Controls.SeatID) do -- loop through defined # of seats to update the values in the plugin
+        if seatlist[key] ~= nil then -- check if there are not more seats defined then actualy available
+          Controls.SeatID[key].String = seatlist[key].id
+          Controls.SeatName[key].String = seatlist[key].name
+          Controls.SeatBatteryStatus[key].String = tostring(seatlist[key].batteryStatus)
+          Controls.SeatConnectedStatus[key].Boolean = seatlist[key].connected
+          if Controls.SeatConnectedStatus[key].Boolean == true then
+            Controls.SeatMicOn[key].IsDisabled = false 
+            Controls.SeatBatteryStatus[key].String = tostring(seatlist[key].batteryStatus)
+          else 
+            Controls.SeatBatteryStatus[key].String = "NA"
+            Controls.SeatMicOn[key].IsDisabled = true
+          end 
+          if seatlist[key].prio then 
+            Controls.SeatPrioEnabled[key].IsInvisible = false
+          else 
+            Controls.SeatPrioEnabled[key].IsInvisible = true
+          end 
+        else -- if more # of seats defined then available, set them NA
+          Controls.SeatID[key].String = "NA"
+          Controls.SeatName[key].String = ""
+          Controls.SeatBatteryStatus[key].String = "NA"
+          Controls.SeatConnectedStatus[key].Boolean = false
+          Controls.SeatPrioEnabled[key].IsInvisible = true
+          Controls.SeatMicOn[key].Boolean = false
+          Controls.SeatMicOn[key].IsDisabled = true
+        end
+        definedSeats = key
+      end
+      for key,_ in pairs(seatlist) do
+        AvailableSeats = key
+      end
+      if definedSeats > AvailableSeats then -- print the warning 
+        local message = string.format("There are more seats defined in properties then avaialable in the WAP!\nOnly %s available in WAP", AvailableSeats)
+        Controls.Message.String = message
+        print(message)
+      elseif definedSeats < AvailableSeats then 
+        local message = string.format("There are les seats defined in properties then avaialable in the WAP!\n%s available in WAP", AvailableSeats)
+        Controls.Message.String = message
+        print(message)
+      else 
+        Controls.Message.String = ""
+      end
+    end 
+    funcGetSeats()
+  elseif code == 0 then 
+    funcGetSeats()
+  else
+    --funcLogin() -- attempt relogin since there is connection or other error
+    -- status will be updated if the login fails
+  end 
+end
+
+---- eventhandler function for api calls that don't realy need data parcing
+function funcGenericResponse(tbl, code, data,  err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if  code ~= 200 then
+    -- nothing todo here
+  end
+end
+
+---- parce system info (Heartbeat)
+function funcParceSystemInfo(tbl, code, data,  err, headers)
+  print(string.format( "HTTP response from '%s': Return Code=%i; Error=%s", tbl.Url, code, err or "None" ) )
+  if  code ~= 200 then
+    status.Value = 4
+    Timer.CallAfter(funcLogin,30)
+    HearbeatTimer:Stop()
+  end
+end
+
+-- API Call functions
+---- Post login
+function funcLogin()
+  if Controls.Status ~= 0 then -- only attempt login when status is nog OK to prevent double api calls
+    url = string.format("http://%s/api/login",ip.String)
+    HttpClient.Post {
+      Url = url,
+      Data = string.format("{\"override\":true, \"username\":\"%s\", \"password\":\"%s\"}",user,password),
+      Headers = {
+        ["Content-Type"] = "application/json",
+      },
+      Timeout = 10,
+      EventHandler = funcParceSid 
+    }
+  end 
+end
+
+---- Get system power status
+function funcGetStatus()
+  if status.Value == 0 then
+    boschID = sid.sid
+    if firstStatusPullAfterLogin then 
+      url = string.format("http://%s/api/system/status",ip.String)
+      firstStatusPullAfterLogin = false
+    else 
+      url = string.format("http://%s/api/system/status?isPolling=true",ip.String)
+    end 
+    HttpClient.Get { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 30, EventHandler = funcParceState }
+  end
+end
+
+----get system info (heatbeat)
+function funcGetSystemInfo()
+  boschID = sid.sid
+  url = string.format("http://%s/api/system-info",ip.String)
+  HttpClient.Get { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 5, EventHandler = funcParceSystemInfo }
+end
+
+---- Set System power status
+function funcSetSystemPower(status)
+  if status.Value == 0 then
+    url = string.format("http://%s/api/system/status",ip.String)
+    boschID = sid.sid
+    HttpClient.Put {
+      Url = url,
+      Data = string.format("{\"state\":%i}",status),
+      Headers = {
+        ["Content-Type"] = "application/json",
+        ["Bosch-Sid"] = boschID,
+      },
+      EventHandler = funcGenericResponse
+    }
+  end
+end
+
+---- Get speaker list
+function funcGetSpeakerList()
+  if status.Value == 0 then
+    boschID = sid.sid
+    if firstSpeakerPullAfterLogin then 
+      url = string.format("http://%s/api/speakers",ip.String)
+      firstSpeakerPullAfterLogin = false 
+    else 
+      url = string.format("http://%s/api/speakers?isPolling=true",ip.String)
+    end 
+    HttpClient.Get { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 30, EventHandler = funcParceSpeakerList }
+  end
+end
+
+---- Get Waitning list
+function funcGetWaitingList()
+  if status.Value == 0 then
+    boschID = sid.sid
+    if firstWaitingPullAfterLogin then 
+      url = string.format("http://%s/api/waiting-list",ip.String)
+      firstWaitingPullAfterLogin = false
+    else 
+      url = string.format("http://%s/api/waiting-list?isPolling=true",ip.String)
+    end 
+    HttpClient.Get { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 30, EventHandler = funcParceWaitingList }
+  end
+end
+
+-- Get available seats
+function funcGetSeats()
+  if status.Value == 0 then
+    boschID = sid.sid
+    if firstSeatsPullAfterLogin then 
+      url = string.format("http://%s/api/seats",ip.String)
+      firstSeatsPullAfterLogin = false
+    else
+      url = string.format("http://%s/api/seats?isPolling=true",ip.String)
+    end
+    HttpClient.Get { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 30, EventHandler = funcParceSeats }
+  end
+end
+
+---- Post to add seat id to speaker list
+function funcPostSpeaker(id)
+  if status.Value == 0 then 
+    url = string.format("http://%s/api/speakers",ip.String)
+    boschID = sid.sid
+    HttpClient.Post {
+      Url = url,
+      Data = string.format("[%s]",id),
+      Headers = {
+        ["Content-Type"] = "application/json",
+        ["Bosch-Sid"] = boschID,
+      },
+      EventHandler = funcGenericResponse
+    }
+  end
+end 
+
+---- Delete seat id from speaker list
+function funcDeleteSpeaker(id)
+  if status.Value == 0 then
+    boschID = sid.sid
+    url = string.format("http://%s/api/speakers/%s",ip.String,id)
+    HttpClient.Delete { Url = url, Headers = { ["Bosch-Sid"] = boschID } , Timeout = 10, EventHandler = funcGenericResponse }
+  end
+end
+
+------------------------------- Runtime Logic ---------------------------------
+
+if Controls then
+------------------------------------ Objects ----------------------------------
+
+
+-------------------------------- Initialization -------------------------------
+function Initialize()
+	-- Do initialization stuff here
+
+    -- Initialize rapidjson for parcing the http json respons
+    rapidjson = require("rapidjson")
+
+    -- Initialize controls
+    ip=Controls.IP
+    user=Controls.user.String
+    password=Controls.password.String
+    power=Controls.Power
+    status=Controls.Status
+
+    -- Initialize default values at startup
+    status.Value = 5
+    power.Value = 0
+    
+    HearbeatTimer = Timer.New()
+
+    -- Eventhandlers
+    --- add or delete seat id to speaker list
+    for key,value in pairs(Controls.SeatMicOn) do
+        Controls.SeatMicOn[key].EventHandler = function()
+            if value.Boolean then 
+            print("adding speaker " .. key)
+            funcPostSpeaker(key)
+            else 
+            funcDeleteSpeaker(key)
+            print("deleting speaker " .. key)
+            end 
+        end 
+    end
+
+
+    ---- login after ip change
+    Controls.IP.EventHandler = function()
+        status.Value = 5
+        ip=Controls.IP
+        funcLogin()
+    end
+
+    ---- login after username change
+    Controls.user.EventHandler = function()
+        status.Value = 5
+        user=Controls.user.String
+        funcLogin()
+    end
+
+    ---- login after password change
+    Controls.password.EventHandler = function()
+        status.Value = 5
+        password=Controls.password.String
+        funcLogin()
+    end
+
+    ---- send new power state
+    power.EventHandler = function(pow)
+        if pow.Boolean then
+            funcSetSystemPower(0)
+        else
+            funcSetSystemPower(2)
+        end
+    end
+
+    for key,_ in pairs(Controls.RemoveActiveSpeaker) do
+        Controls.RemoveActiveSpeaker[key].EventHandler = function ()
+            funcDeleteSpeaker(math.floor(Controls.SpeakerID[key].Value))
+        end 
+    end
+
+    for key,_ in pairs(Controls.AddWaitingSpeaker) do
+        Controls.AddWaitingSpeaker[key].EventHandler = function ()
+            funcPostSpeaker(math.floor(Controls.WaitID[key].Value))
+        end 
+    end
+
+    HearbeatTimer.EventHandler = funcGetSystemInfo
+
+    ---- attempt login after script start
+    funcLogin()
+end
+
+local canInitialize = true
+
+-- Check Properties and other stuff for illegal values
+
+if canInitialize then
+	print("Initializing")
+	Initialize()
+	print("Initialization Complete")
+else
+	print("Not initializing")
+end
+
+-- Nothing should be done after this point
+
+end	--if Controls 
