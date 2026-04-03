@@ -464,7 +464,7 @@ function GetControlLayout(props)
         for i = 1, 5 do
             layout["SpeakerID " .. i] =
             {
-                PrettyName = "Speaker ID " .. i,
+                PrettyName = "Speaker ID~Speaker ID " .. i,
                 Style = "Text",
                 Position = { 55,84 + (i - 1) * 25 },
                 Size = { 49,25 },
@@ -476,7 +476,7 @@ function GetControlLayout(props)
             }
             layout["SpeakerName " .. i] =
             {
-                PrettyName = "Speaker Name " .. i,
+                PrettyName = "Speaker Name~Speaker Name " .. i,
 				        Style = "Text",
 				        Position = { 193,84 + (i - 1) * 25 },
                 Size = { 360,25 },
@@ -490,7 +490,7 @@ function GetControlLayout(props)
 			      }
             layout["RemoveActiveSpeaker " .. i] =
             {
-                PrettyName = "Remove Speaker " .. i,
+                PrettyName = "Remove Speaker~Remove Speaker " .. i,
                 Style = "Button",
                 Position = { 576,84 + (i - 1) * 25 },
                 Size = { 50,25 },
@@ -501,7 +501,7 @@ function GetControlLayout(props)
         for i = 1, 10 do
             layout["WaitID " .. i] =
             {
-                PrettyName = "Wait ID " .. i,
+                PrettyName = "Wait ID~Wait ID " .. i,
                 Style = "Text",
                 Position = { 55,285 + (i - 1) * 25 },
                 Size = { 49,25 },
@@ -513,7 +513,7 @@ function GetControlLayout(props)
             }
             layout["WaitName " .. i] =
             {
-                PrettyName = "Wait Name " .. i,
+                PrettyName = "Wait Name~Wait Name " .. i,
                 Style = "Text",
                 Position = { 193,285 + (i - 1) * 25 },
                 Size = { 360,25 },
@@ -527,7 +527,7 @@ function GetControlLayout(props)
 			      }
             layout["AddWaitingSpeaker " .. i] =
             {
-                PrettyName = "Add Waiting Speaker " .. i,
+                PrettyName = "Add Waiting Speaker~Add Waiting Speaker " .. i,
                 Style = "Button",
                 Position = { 576,285 + (i - 1) * 25 },
                 Size = { 50,25 },
@@ -590,7 +590,7 @@ function GetControlLayout(props)
         for i = 1, math.min(25, props["#Seats"].Value - groupIndex) do            
             layout["SeatID " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat ID " .. (groupIndex + i),
+                PrettyName = "Seat ID~Seat ID " .. (groupIndex + i),
                 Position = { 49, 88 + (i-1)*35 },
                 Size = { 35, 35 },
                 Style = "Text",
@@ -603,7 +603,7 @@ function GetControlLayout(props)
             }
             layout["SeatMicOn " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat Mic On " .. (groupIndex + i),
+                PrettyName = "Seat Mic On~Seat Mic On " .. (groupIndex + i),
                 Position = { 126, 88 + (i-1)*35 },
                 Size = { 60, 35 },
                 Style = "Button",
@@ -612,7 +612,7 @@ function GetControlLayout(props)
             }
             layout["SeatName " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat Name " .. (groupIndex + i),
+                PrettyName = "Seat Name~Seat Name " .. (groupIndex + i),
                 Position = { 202, 88 + (i-1)*35 },
                 Size = { 187, 35 },
                 Style = "Text",
@@ -625,7 +625,7 @@ function GetControlLayout(props)
             }
             layout["SeatBatteryStatus " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat Battery Status " .. (groupIndex + i),
+                PrettyName = "Seat Battery Status~Seat Battery Status " .. (groupIndex + i),
                 Position = { 421, 88 + (i-1)*35 },
                 Size = { 35, 35 },
                 Style = "Text",
@@ -638,14 +638,14 @@ function GetControlLayout(props)
             }
             layout["SeatConnectedStatus " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat Connected Status " .. (groupIndex + i),
+                PrettyName = "Seat Connected Status~Seat Connected Status " .. (groupIndex + i),
                 Position = { 524, 88 + (i-1)*35 },
                 Size = { 30, 30 },
                 Style = "LED",
             }
             layout["SeatPrioEnabled " .. (groupIndex + i)] = 
             {
-                PrettyName = "Seat Prio Enabled " .. (groupIndex + i),
+                PrettyName = "Seat Prio Enabled~Seat Prio Enabled " .. (groupIndex + i),
                 Position = { 618, 88 + (i-1)*35 },
                 Size = { 30, 30 },
                 Style = "LED",
