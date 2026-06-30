@@ -1,4 +1,4 @@
-# Q-SYS Plugin – Bosch DCNM-Wireless
+# Q-SYS Plugin for Bosch DICENTIS Wireless DCNM-Wireless WAP
 
 ## Overview
 
