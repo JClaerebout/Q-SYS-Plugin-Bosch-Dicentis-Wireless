@@ -40,7 +40,7 @@ It is designed for conference and discussion environments where operator visibil
 | Property | Value |
 |----------|------|
 | Name | Bosch DCNM-Wireless |
-| Version | 1.0.0.0 |
+| Version | 1.0.1.0 |
 | Author | Jens Claerebout |
 | Protocol | HTTP API |
 | Transport | TCP/IP |

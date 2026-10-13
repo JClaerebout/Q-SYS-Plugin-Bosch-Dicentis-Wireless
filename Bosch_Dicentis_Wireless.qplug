@@ -1,4 +1,4 @@
-BuildVersion = "1.0.0.0"
+BuildVersion = "1.0.1.0"
 PluginInfo = {
 	-- Use a tilde (~) to seperate the name into a folder
     Name = "Bosch~Bosch DCNM-Wireless v" .. BuildVersion, -- preferred format is "manufacturer~plugin name version"
@@ -1026,13 +1026,13 @@ function funcGetSystemInfo()
 end
 
 ---- Set System power status
-function funcSetSystemPower(status)
+function funcSetSystemPower(powerState)
   if status.Value == 0 then
     url = string.format("http://%s/api/system/status",ip.String)
     boschID = sid.sid
     HttpClient.Put {
       Url = url,
-      Data = string.format("{\"state\":%i}",status),
+      Data = string.format("{\"state\":%i}",powerState),
       Headers = {
         ["Content-Type"] = "application/json",
         ["Bosch-Sid"] = boschID,
